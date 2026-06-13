@@ -15,10 +15,10 @@ const security = [{ bearerAuth: [] }];
 export const commentsRouter = new Elysia()
   .use(authPlugin)
   .get(
-    "/posts/:postId/comments",
+    "/posts/:id/comments",
     async ({ params, query, set }) => {
       const post = await prisma.post.findUnique({
-        where: { id: params.postId, published: true },
+        where: { id: params.id, published: true },
         select: { id: true },
       });
       if (!post) { set.status = 404; return { error: "Post not found" }; }
@@ -27,7 +27,7 @@ export const commentsRouter = new Elysia()
       const offset = query.offset ?? 0;
 
       const comments = await prisma.comment.findMany({
-        where: { postId: params.postId, parentId: null },
+        where: { postId: params.id, parentId: null },
         select: {
           ...commentSelect,
           replies: {
@@ -55,17 +55,17 @@ export const commentsRouter = new Elysia()
     }
   )
   .post(
-    "/posts/:postId/comments",
+    "/posts/:id/comments",
     async ({ userId, params, body, set }) => {
       const post = await prisma.post.findUnique({
-        where: { id: params.postId, published: true },
+        where: { id: params.id, published: true },
         select: { id: true },
       });
       if (!post) { set.status = 404; return { error: "Post not found" }; }
 
       if (body.parentId) {
         const parent = await prisma.comment.findUnique({
-          where: { id: body.parentId, postId: params.postId },
+          where: { id: body.parentId, postId: params.id },
           select: { id: true },
         });
         if (!parent) { set.status = 404; return { error: "Parent comment not found" }; }
@@ -73,7 +73,7 @@ export const commentsRouter = new Elysia()
 
       const comment = await prisma.comment.create({
         data: {
-          postId: params.postId,
+          postId: params.id,
           authorId: userId,
           content: body.content,
           imageUrl: body.imageUrl ?? null,
