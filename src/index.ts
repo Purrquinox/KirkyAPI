@@ -7,6 +7,9 @@ import { postsRouter } from "./routes/posts";
 import { commentsRouter } from "./routes/comments";
 
 const app = new Elysia()
+  .onRequest(({ request }) => {
+    console.log(`[${new Date().toISOString()}] ${request.method} ${new URL(request.url).pathname}`);
+  })
   .use(cors())
   .use(
     swagger({
