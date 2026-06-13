@@ -35,10 +35,9 @@ export const authPlugin = new Elysia({ name: "auth" }).derive(
     let data: IntrospectResult | null = null;
 
     try {
-      const res = await fetch(`${AUTH_API_URL}/api/oauth/introspect`, {
+      const res = await fetch(`${AUTH_API_URL}/api/user/profile`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ token }),
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
       });
 
       if (!res.ok) {
