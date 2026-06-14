@@ -45,6 +45,8 @@ export const postAuthorSelect = {
   profile: {
     select: {
       username: true,
+      firstName: true,
+      lastName: true,
       avatar: true,
       verified: true,
     },

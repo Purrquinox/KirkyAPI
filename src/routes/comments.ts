@@ -71,6 +71,7 @@ export const commentsRouter = new Elysia()
         if (!parent) { set.status = 404; return { error: "Parent comment not found" }; }
       }
 
+      set.status = 201;
       const comment = await prisma.comment.create({
         data: {
           postId: params.id,
@@ -92,7 +93,7 @@ export const commentsRouter = new Elysia()
         parentId: t.Optional(t.String()),
       }),
       response: {
-        200: t.Object({ comment: CommentSchema }),
+        201: t.Object({ comment: CommentSchema }),
         ...AuthNotFoundResponses,
       },
     }

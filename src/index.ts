@@ -1,11 +1,12 @@
 import "dotenv/config";
 import "@sinclair/typebox/compiler";
-import { Elysia } from "elysia";
+import { Elysia, t } from "elysia";
 import { cors } from "@elysiajs/cors";
 import { swagger } from "@elysiajs/swagger";
 import { usersRouter } from "./routes/users";
 import { postsRouter } from "./routes/posts";
 import { commentsRouter } from "./routes/comments";
+import { MessageSchema } from "./lib/schemas";
 
 const app = new Elysia()
   .onRequest(({ request }) => {
@@ -15,18 +16,33 @@ const app = new Elysia()
   .use(
     swagger({
       documentation: {
-        info: { title: "KirkyAPI", version: "1.0.0" },
+        info: {
+          title: "KirkyAPI",
+          version: "1.0.0",
+          description: "REST API for Kirky — social posts, comments, and user profiles.",
+        },
+        tags: [
+          { name: "Users", description: "User profiles and account management" },
+          { name: "Posts", description: "Create, read, update, and delete posts" },
+          { name: "Comments", description: "Comments and threaded replies on posts" },
+          { name: "System", description: "Health and status endpoints" },
+        ],
         components: {
           securitySchemes: {
-            bearerAuth: { type: "http", scheme: "bearer" },
+            bearerAuth: { type: "http", scheme: "bearer", bearerFormat: "JWT" },
           },
         },
-        security: [{ bearerAuth: [] }],
       },
     })
   )
-  .get("/", () => ({ message: "KirkyAPI is running" }))
-  .get("/health", () => ({ status: "ok" }))
+  .get("/", () => ({ message: "KirkyAPI is running" }), {
+    detail: { tags: ["System"], summary: "Root", security: [] },
+    response: { 200: MessageSchema },
+  })
+  .get("/health", () => ({ status: "ok" }), {
+    detail: { tags: ["System"], summary: "Health check", security: [] },
+    response: { 200: t.Object({ status: t.String() }) },
+  })
   .use(usersRouter)
   .use(postsRouter)
   .use(commentsRouter)

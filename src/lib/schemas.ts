@@ -8,6 +8,8 @@ const authorProps = {
   profile: t.Nullable(
     t.Object({
       username: t.String(),
+      firstName: t.Nullable(t.String()),
+      lastName: t.Nullable(t.String()),
       avatar: t.Nullable(t.String()),
       verified: t.Boolean(),
     })
@@ -107,15 +109,18 @@ export const UpdatedProfileSchema = t.Object({
 // Common response sets
 export const AuthResponses = {
   401: ErrorSchema,
+  503: ErrorSchema,
 };
 
 export const AuthNotFoundResponses = {
   401: ErrorSchema,
   404: ErrorSchema,
+  503: ErrorSchema,
 };
 
 export const AuthForbiddenNotFoundResponses = {
   401: ErrorSchema,
   403: ErrorSchema,
   404: ErrorSchema,
+  503: ErrorSchema,
 };

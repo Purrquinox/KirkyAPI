@@ -94,7 +94,8 @@ export const postsRouter = new Elysia({ prefix: "/posts" })
   })
   .post(
     "/",
-    async ({ userId, body }) => {
+    async ({ userId, body, set }) => {
+      set.status = 201;
       const post = await prisma.post.create({
         data: {
           authorId: userId,
@@ -117,7 +118,7 @@ export const postsRouter = new Elysia({ prefix: "/posts" })
         published: t.Optional(t.Boolean()),
       }),
       response: {
-        200: t.Object({ post: PostWithPublishedSchema }),
+        201: t.Object({ post: PostWithPublishedSchema }),
         ...AuthResponses,
       },
     }
