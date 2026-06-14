@@ -16,6 +16,16 @@ const authorProps = {
   ),
 };
 
+const quotePostProps = {
+  id: t.String(),
+  title: t.Nullable(t.String()),
+  content: t.String(),
+  imageUrl: t.Nullable(t.String()),
+  publishedAt: t.Nullable(t.Date()),
+  createdAt: t.Date(),
+  author: t.Object(authorProps),
+};
+
 const postBaseProps = {
   id: t.String(),
   title: t.Nullable(t.String()),
@@ -25,6 +35,14 @@ const postBaseProps = {
   createdAt: t.Date(),
   updatedAt: t.Date(),
   author: t.Object(authorProps),
+  quoteOf: t.Nullable(t.Object(quotePostProps)),
+  likesCount: t.Number(),
+  repostsCount: t.Number(),
+  commentsCount: t.Number(),
+  isLiked: t.Boolean(),
+  isReposted: t.Boolean(),
+  isBookmarked: t.Boolean(),
+  hashtags: t.Array(t.String()),
 };
 
 export const PostSchema = t.Object(postBaseProps);
@@ -32,6 +50,22 @@ export const PostSchema = t.Object(postBaseProps);
 export const PostWithPublishedSchema = t.Object({
   ...postBaseProps,
   published: t.Boolean(),
+});
+
+// Feed item: always a post shape, with optional repost context
+export const FeedItemSchema = t.Object({
+  ...postBaseProps,
+  type: t.Union([t.Literal("post"), t.Literal("repost")]),
+  repostedBy: t.Nullable(
+    t.Object({
+      username: t.String(),
+      firstName: t.Nullable(t.String()),
+      lastName: t.Nullable(t.String()),
+      avatar: t.Nullable(t.String()),
+      verified: t.Boolean(),
+    })
+  ),
+  repostedAt: t.Nullable(t.Date()),
 });
 
 const commentBaseProps = {
@@ -42,6 +76,8 @@ const commentBaseProps = {
   createdAt: t.Date(),
   updatedAt: t.Date(),
   author: t.Object(authorProps),
+  likesCount: t.Number(),
+  isLiked: t.Boolean(),
 };
 
 export const CommentSchema = t.Object(commentBaseProps);
@@ -49,6 +85,14 @@ export const CommentSchema = t.Object(commentBaseProps);
 export const CommentWithRepliesSchema = t.Object({
   ...commentBaseProps,
   replies: t.Array(t.Object(commentBaseProps)),
+});
+
+export const ProfileSummarySchema = t.Object({
+  username: t.String(),
+  firstName: t.Nullable(t.String()),
+  lastName: t.Nullable(t.String()),
+  avatar: t.Nullable(t.String()),
+  verified: t.Boolean(),
 });
 
 export const PublicProfileSchema = t.Object({
@@ -62,6 +106,11 @@ export const PublicProfileSchema = t.Object({
   bannerImage: t.Nullable(t.String()),
   verified: t.Boolean(),
   createdAt: t.Date(),
+  followersCount: t.Number(),
+  followingCount: t.Number(),
+  isFollowing: t.Boolean(),
+  isBlocked: t.Boolean(),
+  pinnedPost: t.Nullable(PostSchema),
 });
 
 const privateProfileProps = {
@@ -78,6 +127,8 @@ const privateProfileProps = {
   verified: t.Boolean(),
   createdAt: t.Date(),
   updatedAt: t.Date(),
+  followersCount: t.Number(),
+  followingCount: t.Number(),
 };
 
 export const PrivateProfileSchema = t.Object(privateProfileProps);
@@ -104,6 +155,33 @@ export const UpdatedProfileSchema = t.Object({
   avatar: t.Nullable(t.String()),
   verified: t.Boolean(),
   updatedAt: t.Date(),
+  followersCount: t.Number(),
+  followingCount: t.Number(),
+});
+
+export const NotificationSchema = t.Object({
+  id: t.String(),
+  type: t.String(),
+  read: t.Boolean(),
+  createdAt: t.Date(),
+  actor: t.Object({
+    profile: t.Nullable(
+      t.Object({
+        username: t.String(),
+        firstName: t.Nullable(t.String()),
+        lastName: t.Nullable(t.String()),
+        avatar: t.Nullable(t.String()),
+        verified: t.Boolean(),
+      })
+    ),
+  }),
+  post: t.Nullable(t.Object({ id: t.String(), content: t.String(), title: t.Nullable(t.String()) })),
+  comment: t.Nullable(t.Object({ id: t.String(), content: t.String() })),
+});
+
+export const HashtagSchema = t.Object({
+  tag: t.String(),
+  postsCount: t.Number(),
 });
 
 // Common response sets

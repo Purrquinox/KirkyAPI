@@ -6,22 +6,29 @@ datasource db {
   provider = "postgresql"
 }
 
+enum NotificationType {
+  FOLLOW
+  LIKE_POST
+  LIKE_COMMENT
+  COMMENT
+  REPOST
+  QUOTE
+  MENTION
+}
+
 model User {
-  id       String  @id @default(cuid())
-  email    String? @unique
-  password String?
-
-  appleId  String? @unique
-  githubId Int?    @unique
-
+  id            String    @id @default(cuid())
+  email         String?   @unique
+  password      String?
+  appleId       String?   @unique
+  githubId      Int?      @unique
   emailVerified DateTime?
   isActive      Boolean   @default(true)
   lastLoginAt   DateTime?
   loginAttempts Int       @default(0)
   lockedUntil   DateTime?
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
 
   profile            Profile?
   posts              Post[]
@@ -31,6 +38,16 @@ model User {
   oauthApps          OAuthApp[]
   oauthAuthCodes     OAuthAuthorizationCode[]
   oauthRefreshTokens OAuthRefreshToken[]
+  following          Follow[]               @relation("Follower")
+  followedBy         Follow[]               @relation("Following")
+  postLikes          PostLike[]
+  commentLikes       CommentLike[]
+  reposts            Repost[]
+  bookmarks          Bookmark[]
+  blocking           Block[]                @relation("Blocker")
+  blockedBy          Block[]                @relation("Blocked")
+  notifications      Notification[]         @relation("NotificationRecipient")
+  sentNotifications  Notification[]         @relation("NotificationActor")
 
   @@index([email])
   @@index([appleId])
@@ -52,6 +69,9 @@ model Profile {
   location    String?
   verified    Boolean @default(false)
 
+  pinnedPostId String? @unique
+  pinnedPost   Post?   @relation("ProfilePinnedPost", fields: [pinnedPostId], references: [id], onDelete: SetNull)
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -69,12 +89,24 @@ model Post {
   published   Boolean   @default(false)
   publishedAt DateTime?
 
-  comments  Comment[]
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
+  quoteOfId  String?
+  quoteOf    Post?   @relation("QuotePosts", fields: [quoteOfId], references: [id], onDelete: SetNull)
+  quotePosts Post[]  @relation("QuotePosts")
+
+  comments        Comment[]
+  postLikes       PostLike[]
+  reposts         Repost[]
+  bookmarks       Bookmark[]
+  hashtags        PostHashtag[]
+  notifications   Notification[]
+  pinnedByProfile Profile?       @relation("ProfilePinnedPost")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([authorId])
   @@index([publishedAt])
+  @@index([quoteOfId])
   @@map("posts")
 }
 
@@ -90,6 +122,9 @@ model Comment {
   parent   Comment?  @relation("CommentReplies", fields: [parentId], references: [id], onDelete: NoAction, onUpdate: NoAction)
   replies  Comment[] @relation("CommentReplies")
 
+  commentLikes  CommentLike[]
+  notifications Notification[]
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -97,6 +132,120 @@ model Comment {
   @@index([authorId])
   @@index([parentId])
   @@map("comments")
+}
+
+model PostLike {
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  postId    String
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@id([userId, postId])
+  @@index([postId])
+  @@map("post_likes")
+}
+
+model CommentLike {
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  commentId String
+  comment   Comment  @relation(fields: [commentId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@id([userId, commentId])
+  @@index([commentId])
+  @@map("comment_likes")
+}
+
+model Repost {
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  postId    String
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@id([userId, postId])
+  @@index([userId])
+  @@index([postId])
+  @@map("reposts")
+}
+
+model Bookmark {
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  postId    String
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@id([userId, postId])
+  @@index([userId])
+  @@map("bookmarks")
+}
+
+model Block {
+  blockerId String
+  blocker   User     @relation("Blocker", fields: [blockerId], references: [id], onDelete: Cascade)
+  blockedId String
+  blocked   User     @relation("Blocked", fields: [blockedId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@id([blockerId, blockedId])
+  @@index([blockerId])
+  @@index([blockedId])
+  @@map("blocks")
+}
+
+model Hashtag {
+  id    String      @id @default(cuid())
+  tag   String      @unique
+  posts PostHashtag[]
+
+  @@index([tag])
+  @@map("hashtags")
+}
+
+model PostHashtag {
+  postId    String
+  post      Post    @relation(fields: [postId], references: [id], onDelete: Cascade)
+  hashtagId String
+  hashtag   Hashtag @relation(fields: [hashtagId], references: [id], onDelete: Cascade)
+
+  @@id([postId, hashtagId])
+  @@index([hashtagId])
+  @@map("post_hashtags")
+}
+
+model Notification {
+  id        String           @id @default(cuid())
+  userId    String
+  user      User             @relation("NotificationRecipient", fields: [userId], references: [id], onDelete: Cascade)
+  actorId   String
+  actor     User             @relation("NotificationActor", fields: [actorId], references: [id], onDelete: Cascade)
+  type      NotificationType
+  postId    String?
+  post      Post?            @relation(fields: [postId], references: [id], onDelete: Cascade)
+  commentId String?
+  comment   Comment?         @relation(fields: [commentId], references: [id], onDelete: Cascade)
+  read      Boolean          @default(false)
+  createdAt DateTime         @default(now())
+
+  @@index([userId, read])
+  @@index([userId, createdAt])
+  @@map("notifications")
+}
+
+model Follow {
+  followerId  String
+  follower    User     @relation("Follower", fields: [followerId], references: [id], onDelete: Cascade)
+  followingId String
+  following   User     @relation("Following", fields: [followingId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+
+  @@id([followerId, followingId])
+  @@index([followerId])
+  @@index([followingId])
+  @@map("follows")
 }
 
 model RefreshToken {
