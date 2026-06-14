@@ -1,4 +1,4 @@
-import { NotificationType } from "../../generated/prisma";
+import { NotificationType } from "../generated/prisma";
 import { prisma } from "./prisma";
 
 export async function notify(params: {

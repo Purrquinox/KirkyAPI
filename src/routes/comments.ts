@@ -3,7 +3,7 @@ import { prisma } from "../lib/prisma";
 import { buildCommentSelect, transformComment } from "../lib/select";
 import { authPlugin } from "../lib/auth";
 import { notify, notifyMentions } from "../lib/notifications";
-import { NotificationType } from "../../generated/prisma";
+import { NotificationType } from "../generated/prisma";
 import {
   MessageSchema,
   ErrorSchema,

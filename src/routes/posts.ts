@@ -4,7 +4,7 @@ import { buildPostSelect, transformPost } from "../lib/select";
 import { authPlugin } from "../lib/auth";
 import { notify, notifyMentions } from "../lib/notifications";
 import { syncPostHashtags } from "../lib/hashtags";
-import { NotificationType } from "../../generated/prisma";
+import { NotificationType } from "../generated/prisma";
 import {
   MessageSchema,
   ErrorSchema,
