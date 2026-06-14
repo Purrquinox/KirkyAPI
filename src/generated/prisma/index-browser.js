@@ -147,6 +147,7 @@ exports.Prisma.ProfileScalarFieldEnum = {
   website: 'website',
   location: 'location',
   verified: 'verified',
+  emailPublic: 'emailPublic',
   pinnedPostId: 'pinnedPostId',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'

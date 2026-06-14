@@ -10,6 +10,7 @@ export const publicProfileSelect = {
   location: true,
   bannerImage: true,
   verified: true,
+  emailPublic: true,
   createdAt: true,
 } as const;
 
@@ -25,6 +26,7 @@ export const privateProfileSelect = {
   location: true,
   bannerImage: true,
   verified: true,
+  emailPublic: true,
   createdAt: true,
   updatedAt: true,
 } as const;

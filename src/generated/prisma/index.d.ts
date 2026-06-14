@@ -4602,6 +4602,7 @@ export namespace Prisma {
     website: string | null
     location: string | null
     verified: boolean | null
+    emailPublic: boolean | null
     pinnedPostId: string | null
     createdAt: Date | null
     updatedAt: Date | null
@@ -4619,6 +4620,7 @@ export namespace Prisma {
     website: string | null
     location: string | null
     verified: boolean | null
+    emailPublic: boolean | null
     pinnedPostId: string | null
     createdAt: Date | null
     updatedAt: Date | null
@@ -4636,6 +4638,7 @@ export namespace Prisma {
     website: number
     location: number
     verified: number
+    emailPublic: number
     pinnedPostId: number
     createdAt: number
     updatedAt: number
@@ -4655,6 +4658,7 @@ export namespace Prisma {
     website?: true
     location?: true
     verified?: true
+    emailPublic?: true
     pinnedPostId?: true
     createdAt?: true
     updatedAt?: true
@@ -4672,6 +4676,7 @@ export namespace Prisma {
     website?: true
     location?: true
     verified?: true
+    emailPublic?: true
     pinnedPostId?: true
     createdAt?: true
     updatedAt?: true
@@ -4689,6 +4694,7 @@ export namespace Prisma {
     website?: true
     location?: true
     verified?: true
+    emailPublic?: true
     pinnedPostId?: true
     createdAt?: true
     updatedAt?: true
@@ -4779,6 +4785,7 @@ export namespace Prisma {
     website: string | null
     location: string | null
     verified: boolean
+    emailPublic: boolean
     pinnedPostId: string | null
     createdAt: Date
     updatedAt: Date
@@ -4813,6 +4820,7 @@ export namespace Prisma {
     website?: boolean
     location?: boolean
     verified?: boolean
+    emailPublic?: boolean
     pinnedPostId?: boolean
     createdAt?: boolean
     updatedAt?: boolean
@@ -4832,6 +4840,7 @@ export namespace Prisma {
     website?: boolean
     location?: boolean
     verified?: boolean
+    emailPublic?: boolean
     pinnedPostId?: boolean
     createdAt?: boolean
     updatedAt?: boolean
@@ -4851,6 +4860,7 @@ export namespace Prisma {
     website?: boolean
     location?: boolean
     verified?: boolean
+    emailPublic?: boolean
     pinnedPostId?: boolean
     createdAt?: boolean
     updatedAt?: boolean
@@ -4870,12 +4880,13 @@ export namespace Prisma {
     website?: boolean
     location?: boolean
     verified?: boolean
+    emailPublic?: boolean
     pinnedPostId?: boolean
     createdAt?: boolean
     updatedAt?: boolean
   }
 
-  export type ProfileOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "userId" | "username" | "firstName" | "lastName" | "avatar" | "bannerImage" | "bio" | "website" | "location" | "verified" | "pinnedPostId" | "createdAt" | "updatedAt", ExtArgs["result"]["profile"]>
+  export type ProfileOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "userId" | "username" | "firstName" | "lastName" | "avatar" | "bannerImage" | "bio" | "website" | "location" | "verified" | "emailPublic" | "pinnedPostId" | "createdAt" | "updatedAt", ExtArgs["result"]["profile"]>
   export type ProfileInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     user?: boolean | UserDefaultArgs<ExtArgs>
     pinnedPost?: boolean | Profile$pinnedPostArgs<ExtArgs>
@@ -4907,6 +4918,7 @@ export namespace Prisma {
       website: string | null
       location: string | null
       verified: boolean
+      emailPublic: boolean
       pinnedPostId: string | null
       createdAt: Date
       updatedAt: Date
@@ -5346,6 +5358,7 @@ export namespace Prisma {
     readonly website: FieldRef<"Profile", 'String'>
     readonly location: FieldRef<"Profile", 'String'>
     readonly verified: FieldRef<"Profile", 'Boolean'>
+    readonly emailPublic: FieldRef<"Profile", 'Boolean'>
     readonly pinnedPostId: FieldRef<"Profile", 'String'>
     readonly createdAt: FieldRef<"Profile", 'DateTime'>
     readonly updatedAt: FieldRef<"Profile", 'DateTime'>
@@ -24601,6 +24614,7 @@ export namespace Prisma {
     website: 'website',
     location: 'location',
     verified: 'verified',
+    emailPublic: 'emailPublic',
     pinnedPostId: 'pinnedPostId',
     createdAt: 'createdAt',
     updatedAt: 'updatedAt'
@@ -25108,6 +25122,7 @@ export namespace Prisma {
     website?: StringNullableFilter<"Profile"> | string | null
     location?: StringNullableFilter<"Profile"> | string | null
     verified?: BoolFilter<"Profile"> | boolean
+    emailPublic?: BoolFilter<"Profile"> | boolean
     pinnedPostId?: StringNullableFilter<"Profile"> | string | null
     createdAt?: DateTimeFilter<"Profile"> | Date | string
     updatedAt?: DateTimeFilter<"Profile"> | Date | string
@@ -25127,6 +25142,7 @@ export namespace Prisma {
     website?: SortOrderInput | SortOrder
     location?: SortOrderInput | SortOrder
     verified?: SortOrder
+    emailPublic?: SortOrder
     pinnedPostId?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
@@ -25150,6 +25166,7 @@ export namespace Prisma {
     website?: StringNullableFilter<"Profile"> | string | null
     location?: StringNullableFilter<"Profile"> | string | null
     verified?: BoolFilter<"Profile"> | boolean
+    emailPublic?: BoolFilter<"Profile"> | boolean
     createdAt?: DateTimeFilter<"Profile"> | Date | string
     updatedAt?: DateTimeFilter<"Profile"> | Date | string
     user?: XOR<UserScalarRelationFilter, UserWhereInput>
@@ -25168,6 +25185,7 @@ export namespace Prisma {
     website?: SortOrderInput | SortOrder
     location?: SortOrderInput | SortOrder
     verified?: SortOrder
+    emailPublic?: SortOrder
     pinnedPostId?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
@@ -25191,6 +25209,7 @@ export namespace Prisma {
     website?: StringNullableWithAggregatesFilter<"Profile"> | string | null
     location?: StringNullableWithAggregatesFilter<"Profile"> | string | null
     verified?: BoolWithAggregatesFilter<"Profile"> | boolean
+    emailPublic?: BoolWithAggregatesFilter<"Profile"> | boolean
     pinnedPostId?: StringNullableWithAggregatesFilter<"Profile"> | string | null
     createdAt?: DateTimeWithAggregatesFilter<"Profile"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"Profile"> | Date | string
@@ -26477,6 +26496,7 @@ export namespace Prisma {
     website?: string | null
     location?: string | null
     verified?: boolean
+    emailPublic?: boolean
     createdAt?: Date | string
     updatedAt?: Date | string
     user: UserCreateNestedOneWithoutProfileInput
@@ -26495,6 +26515,7 @@ export namespace Prisma {
     website?: string | null
     location?: string | null
     verified?: boolean
+    emailPublic?: boolean
     pinnedPostId?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -26511,6 +26532,7 @@ export namespace Prisma {
     website?: NullableStringFieldUpdateOperationsInput | string | null
     location?: NullableStringFieldUpdateOperationsInput | string | null
     verified?: BoolFieldUpdateOperationsInput | boolean
+    emailPublic?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     user?: UserUpdateOneRequiredWithoutProfileNestedInput
@@ -26529,6 +26551,7 @@ export namespace Prisma {
     website?: NullableStringFieldUpdateOperationsInput | string | null
     location?: NullableStringFieldUpdateOperationsInput | string | null
     verified?: BoolFieldUpdateOperationsInput | boolean
+    emailPublic?: BoolFieldUpdateOperationsInput | boolean
     pinnedPostId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -26546,6 +26569,7 @@ export namespace Prisma {
     website?: string | null
     location?: string | null
     verified?: boolean
+    emailPublic?: boolean
     pinnedPostId?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -26562,6 +26586,7 @@ export namespace Prisma {
     website?: NullableStringFieldUpdateOperationsInput | string | null
     location?: NullableStringFieldUpdateOperationsInput | string | null
     verified?: BoolFieldUpdateOperationsInput | boolean
+    emailPublic?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -26578,6 +26603,7 @@ export namespace Prisma {
     website?: NullableStringFieldUpdateOperationsInput | string | null
     location?: NullableStringFieldUpdateOperationsInput | string | null
     verified?: BoolFieldUpdateOperationsInput | boolean
+    emailPublic?: BoolFieldUpdateOperationsInput | boolean
     pinnedPostId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -28070,6 +28096,7 @@ export namespace Prisma {
     website?: SortOrder
     location?: SortOrder
     verified?: SortOrder
+    emailPublic?: SortOrder
     pinnedPostId?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
@@ -28087,6 +28114,7 @@ export namespace Prisma {
     website?: SortOrder
     location?: SortOrder
     verified?: SortOrder
+    emailPublic?: SortOrder
     pinnedPostId?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
@@ -28104,6 +28132,7 @@ export namespace Prisma {
     website?: SortOrder
     location?: SortOrder
     verified?: SortOrder
+    emailPublic?: SortOrder
     pinnedPostId?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
@@ -30796,6 +30825,7 @@ export namespace Prisma {
     website?: string | null
     location?: string | null
     verified?: boolean
+    emailPublic?: boolean
     createdAt?: Date | string
     updatedAt?: Date | string
     pinnedPost?: PostCreateNestedOneWithoutPinnedByProfileInput
@@ -30812,6 +30842,7 @@ export namespace Prisma {
     website?: string | null
     location?: string | null
     verified?: boolean
+    emailPublic?: boolean
     pinnedPostId?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -31312,6 +31343,7 @@ export namespace Prisma {
     website?: NullableStringFieldUpdateOperationsInput | string | null
     location?: NullableStringFieldUpdateOperationsInput | string | null
     verified?: BoolFieldUpdateOperationsInput | boolean
+    emailPublic?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     pinnedPost?: PostUpdateOneWithoutPinnedByProfileNestedInput
@@ -31328,6 +31360,7 @@ export namespace Prisma {
     website?: NullableStringFieldUpdateOperationsInput | string | null
     location?: NullableStringFieldUpdateOperationsInput | string | null
     verified?: BoolFieldUpdateOperationsInput | boolean
+    emailPublic?: BoolFieldUpdateOperationsInput | boolean
     pinnedPostId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -32336,6 +32369,7 @@ export namespace Prisma {
     website?: string | null
     location?: string | null
     verified?: boolean
+    emailPublic?: boolean
     createdAt?: Date | string
     updatedAt?: Date | string
     user: UserCreateNestedOneWithoutProfileInput
@@ -32353,6 +32387,7 @@ export namespace Prisma {
     website?: string | null
     location?: string | null
     verified?: boolean
+    emailPublic?: boolean
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -32630,6 +32665,7 @@ export namespace Prisma {
     website?: NullableStringFieldUpdateOperationsInput | string | null
     location?: NullableStringFieldUpdateOperationsInput | string | null
     verified?: BoolFieldUpdateOperationsInput | boolean
+    emailPublic?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     user?: UserUpdateOneRequiredWithoutProfileNestedInput
@@ -32647,6 +32683,7 @@ export namespace Prisma {
     website?: NullableStringFieldUpdateOperationsInput | string | null
     location?: NullableStringFieldUpdateOperationsInput | string | null
     verified?: BoolFieldUpdateOperationsInput | boolean
+    emailPublic?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }

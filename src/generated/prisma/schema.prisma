@@ -69,6 +69,7 @@ model Profile {
   website     String?
   location    String?
   verified    Boolean @default(false)
+  emailPublic Boolean @default(false)
 
   pinnedPostId String? @unique
   pinnedPost   Post?   @relation("ProfilePinnedPost", fields: [pinnedPostId], references: [id], onDelete: SetNull)

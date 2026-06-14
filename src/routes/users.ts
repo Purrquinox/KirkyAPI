@@ -101,6 +101,7 @@ export const usersRouter = new Elysia({ prefix: "/users" })
             ...(body.location !== undefined && { location: body.location }),
             ...(resolvedAvatar !== undefined && { avatar: resolvedAvatar }),
             ...(resolvedBanner !== undefined && { bannerImage: resolvedBanner }),
+            ...(body.emailPublic !== undefined && { emailPublic: body.emailPublic }),
             ...(body.pinnedPostId !== undefined && { pinnedPostId: body.pinnedPostId }),
           },
           select: {
@@ -113,6 +114,7 @@ export const usersRouter = new Elysia({ prefix: "/users" })
             bannerImage: true,
             avatar: true,
             verified: true,
+            emailPublic: true,
             updatedAt: true,
           },
         }),
@@ -139,6 +141,7 @@ export const usersRouter = new Elysia({ prefix: "/users" })
         avatarFile: t.Optional(t.File({ maxSize: "10m" })),
         bannerImage: t.Optional(t.Nullable(t.String({ maxLength: 2048 }))),
         bannerImageFile: t.Optional(t.File({ maxSize: "10m" })),
+        emailPublic: t.Optional(t.Boolean()),
         pinnedPostId: t.Optional(t.Nullable(t.String())),
       }),
       response: {
@@ -155,12 +158,20 @@ export const usersRouter = new Elysia({ prefix: "/users" })
         ...publicProfileSelect,
         userId: true,
         pinnedPostId: true,
-        user: { select: { _count: { select: { followedBy: true, following: true } } } },
+        user: {
+          select: {
+            email: true,
+            _count: { select: { followedBy: true, following: true } },
+          },
+        },
       },
     });
     if (!raw) { set.status = 404; return { error: "User not found" }; }
 
     const { user, userId: profileUserId, pinnedPostId, ...profileData } = raw;
+
+    // Email is only surfaced when the user has opted to make it public
+    const email = profileData.emailPublic ? user.email : null;
 
     const [followRel, blockRel] = await prisma.$transaction([
       prisma.follow.findUnique({
@@ -185,6 +196,7 @@ export const usersRouter = new Elysia({ prefix: "/users" })
     return {
       profile: {
         ...withCounts(profileData, user._count),
+        email,
         isFollowing: !!followRel,
         isBlocked: !!blockRel,
         pinnedPost,
