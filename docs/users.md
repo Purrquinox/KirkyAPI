@@ -74,6 +74,7 @@ Returns the full private account record for the authenticated user, including em
       "location": "San Francisco, CA",
       "bannerImage": null,
       "verified": false,
+      "emailPublic": false,
       "createdAt": "2026-01-01T00:00:00.000Z",
       "updatedAt": "2026-06-14T08:00:00.000Z",
       "followersCount": 120,
@@ -120,6 +121,7 @@ Updates the authenticated user's profile. All fields are optional — only the f
 | `avatarFile`       | file           | Max 10 MB                           | Upload avatar directly; sets `avatar` |
 | `bannerImage`      | string \| null | Max 2048 chars                      | Banner image URL                     |
 | `bannerImageFile`  | file           | Max 10 MB                           | Upload banner directly; sets `bannerImage` |
+| `emailPublic`  | boolean        | —                                   | Show your email on your public profile. Defaults to `false` (private) |
 | `pinnedPostId` | string \| null | Must be your own published post ID  | Post to pin to the profile           |
 
 Pass `null` explicitly to clear a nullable field (e.g. `"bio": null` removes the bio).
@@ -144,6 +146,7 @@ Pass `null` explicitly to clear a nullable field (e.g. `"bio": null` removes the
     "bannerImage": "https://bytepurr.purrquinox.com/kirky/banner123/cover.jpg",
     "avatar": "https://bytepurr.purrquinox.com/kirky/avatar456/photo.jpg",
     "verified": false,
+    "emailPublic": false,
     "updatedAt": "2026-06-14T12:00:00.000Z",
     "followersCount": 120,
     "followingCount": 85
@@ -206,6 +209,19 @@ curl -X PATCH "https://api.kirky.app/users/me" \
   -d '{"pinnedPostId": null}'
 ```
 
+**Make your email public:**
+
+Emails are private by default. Opt in to show your email on your public profile:
+
+```bash
+curl -X PATCH "https://api.kirky.app/users/me" \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"emailPublic": true}'
+```
+
+Set it back to `false` to hide your email again.
+
 ### Errors
 
 | Status | Description                                                           |
@@ -222,6 +238,8 @@ curl -X PATCH "https://api.kirky.app/users/me" \
 **`GET /users/:username`**
 
 Returns the public profile for any user by their username. Includes social graph context (`isFollowing`, `isBlocked`) relative to the authenticated user, and the user's pinned post if set.
+
+The `email` field is only populated when that user has made their email public (`emailPublic` is `true`). Emails are private by default, so `email` is `null` for most profiles.
 
 ### Path Parameters
 
@@ -247,6 +265,8 @@ Returns the public profile for any user by their username. Includes social graph
     "location": "San Francisco, CA",
     "bannerImage": null,
     "verified": true,
+    "emailPublic": true,
+    "email": "elias@kirky.app",
     "createdAt": "2025-12-01T00:00:00.000Z",
     "followersCount": 5400,
     "followingCount": 210,

@@ -200,6 +200,8 @@ Full public-facing profile, including social graph context relative to the authe
 | `location`       | string \| null             |                                                      |
 | `bannerImage`    | string \| null             | Profile banner image URL — Kirky CDN or any valid URL |
 | `verified`       | boolean                    | Blue-check verification status                       |
+| `emailPublic`    | boolean                    | Whether this user has chosen to make their email public |
+| `email`          | string \| null             | The user's email — only populated when `emailPublic` is `true`; otherwise `null` |
 | `createdAt`      | ISO 8601                   | Account creation date                                |
 | `followersCount` | number                     |                                                      |
 | `followingCount` | number                     |                                                      |
@@ -208,6 +210,8 @@ Full public-facing profile, including social graph context relative to the authe
 | `pinnedPost`     | [Post](#post) \| null      | Post pinned to this profile                          |
 
 > `isFollowing` and `isBlocked` reflect the **viewer's** relationship to the profile, not the other way around.
+
+> Emails are **private by default**. `email` is only returned when the profile owner has opted in by setting `emailPublic` to `true` (via `PATCH /users/me`). When `emailPublic` is `false`, `email` is always `null`, even for accounts that have an email on file.
 
 ---
 
@@ -250,6 +254,7 @@ Full account object returned only from `GET /users/me`. Contains fields not visi
       "location": "San Francisco, CA",
       "bannerImage": null,
       "verified": false,
+      "emailPublic": false,
       "createdAt": "2026-01-01T00:00:00.000Z",
       "updatedAt": "2026-06-14T08:00:00.000Z",
       "followersCount": 120,
@@ -278,6 +283,7 @@ Full profile returned only for the authenticated user (nested inside [PrivateUse
 | `location`       | string \| null |                                     |
 | `bannerImage`    | string \| null |                                     |
 | `verified`       | boolean        |                                     |
+| `emailPublic`    | boolean        | Whether the account's email is shown on its public profile |
 | `createdAt`      | ISO 8601       |                                     |
 | `updatedAt`      | ISO 8601       |                                     |
 | `followersCount` | number         |                                     |
