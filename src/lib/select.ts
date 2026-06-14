@@ -2,6 +2,8 @@
 
 export const publicProfileSelect = {
   username: true,
+  firstName: true,
+  lastName: true,
   avatar: true,
   bio: true,
   website: true,

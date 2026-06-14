@@ -101,7 +101,7 @@ export const postsRouter = new Elysia({ prefix: "/posts" })
           content: body.content,
           title: body.title ?? null,
           imageUrl: body.imageUrl ?? null,
-          published: body.published ?? false,
+          published: body.published ?? true,
           publishedAt: body.published ? new Date() : null,
         },
         select: { ...postSelect, published: true },

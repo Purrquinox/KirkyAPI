@@ -41,6 +41,8 @@ export const usersRouter = new Elysia({ prefix: "/users" })
         where: { userId },
         data: {
           ...(body.username !== undefined && { username: body.username }),
+          ...(body.firstName !== undefined && { firstName: body.firstName }),
+          ...(body.lastName !== undefined && { lastName: body.lastName }),
           ...(body.bio !== undefined && { bio: body.bio }),
           ...(body.website !== undefined && { website: body.website }),
           ...(body.location !== undefined && { location: body.location }),
@@ -48,6 +50,8 @@ export const usersRouter = new Elysia({ prefix: "/users" })
         },
         select: {
           username: true,
+          firstName: true,
+          lastName: true,
           bio: true,
           website: true,
           location: true,
@@ -66,6 +70,8 @@ export const usersRouter = new Elysia({ prefix: "/users" })
         username: t.Optional(
           t.String({ minLength: 3, maxLength: 20, pattern: "^[a-zA-Z0-9_-]{3,20}$" })
         ),
+        firstName: t.Optional(t.Nullable(t.String({ maxLength: 50 }))),
+        lastName: t.Optional(t.Nullable(t.String({ maxLength: 50 }))),
         bio: t.Optional(t.Nullable(t.String({ maxLength: 500 }))),
         website: t.Optional(t.Nullable(t.String({ maxLength: 255 }))),
         location: t.Optional(t.Nullable(t.String({ maxLength: 100 }))),

@@ -51,6 +51,8 @@ export const CommentWithRepliesSchema = t.Object({
 
 export const PublicProfileSchema = t.Object({
   username: t.String(),
+  firstName: t.Nullable(t.String()),
+  lastName: t.Nullable(t.String()),
   avatar: t.Nullable(t.String()),
   bio: t.Nullable(t.String()),
   website: t.Nullable(t.String()),
@@ -91,6 +93,8 @@ export const PrivateUserSchema = t.Object({
 
 export const UpdatedProfileSchema = t.Object({
   username: t.String(),
+  firstName: t.Nullable(t.String()),
+  lastName: t.Nullable(t.String()),
   bio: t.Nullable(t.String()),
   website: t.Nullable(t.String()),
   location: t.Nullable(t.String()),
