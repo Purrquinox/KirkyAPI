@@ -9,7 +9,7 @@ import {
 } from "../lib/select";
 import { authPlugin } from "../lib/auth";
 import { notify } from "../lib/notifications";
-import { NotificationType } from "../../generated/prisma";
+import { NotificationType } from "../generated/prisma";
 import {
   PublicProfileSchema,
   ProfileSummarySchema,
