@@ -21,7 +21,8 @@ COPY --from=builder /app/prisma ./prisma
 COPY --from=builder /app/src ./src
 COPY --from=builder /app/package.json ./
 COPY --from=builder /app/tsconfig.json ./
+COPY --from=builder /app/prisma.config.ts ./
 
-EXPOSE 3000
+EXPOSE 3000 5555
 
-CMD ["sh", "-c", "bun src/index.ts"]
+CMD ["sh", "-c", "bunx prisma studio --port 5555 --browser none & bun src/index.ts"]
