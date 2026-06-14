@@ -10,6 +10,7 @@ import {
 import { authPlugin } from "../lib/auth";
 import { notify } from "../lib/notifications";
 import { NotificationType } from "../generated/prisma";
+import { uploadToBytePurr } from "../lib/upload";
 import {
   PublicProfileSchema,
   ProfileSummarySchema,
@@ -22,6 +23,8 @@ import {
   AuthNotFoundResponses,
   AuthForbiddenNotFoundResponses,
 } from "../lib/schemas";
+
+const UploadErrorResponses = { 502: ErrorSchema } as const;
 
 const security = [{ bearerAuth: [] }];
 
@@ -65,6 +68,18 @@ export const usersRouter = new Elysia({ prefix: "/users" })
       const profile = await prisma.profile.findUnique({ where: { userId } });
       if (!profile) { set.status = 404; return { error: "Profile not found" }; }
 
+      let resolvedAvatar = body.avatar;
+      let resolvedBanner = body.bannerImage;
+
+      if (body.avatarFile) {
+        try { resolvedAvatar = await uploadToBytePurr(body.avatarFile, userId, "ProfilePicture"); }
+        catch { set.status = 502; return { error: "Avatar upload failed" }; }
+      }
+      if (body.bannerImageFile) {
+        try { resolvedBanner = await uploadToBytePurr(body.bannerImageFile, userId, "BannerImage"); }
+        catch { set.status = 502; return { error: "Banner upload failed" }; }
+      }
+
       // Validate pinnedPostId belongs to this user
       if (body.pinnedPostId) {
         const pinned = await prisma.post.findUnique({
@@ -84,7 +99,8 @@ export const usersRouter = new Elysia({ prefix: "/users" })
             ...(body.bio !== undefined && { bio: body.bio }),
             ...(body.website !== undefined && { website: body.website }),
             ...(body.location !== undefined && { location: body.location }),
-            ...(body.bannerImage !== undefined && { bannerImage: body.bannerImage }),
+            ...(resolvedAvatar !== undefined && { avatar: resolvedAvatar }),
+            ...(resolvedBanner !== undefined && { bannerImage: resolvedBanner }),
             ...(body.pinnedPostId !== undefined && { pinnedPostId: body.pinnedPostId }),
           },
           select: {
@@ -119,11 +135,15 @@ export const usersRouter = new Elysia({ prefix: "/users" })
         bio: t.Optional(t.Nullable(t.String({ maxLength: 500 }))),
         website: t.Optional(t.Nullable(t.String({ maxLength: 255 }))),
         location: t.Optional(t.Nullable(t.String({ maxLength: 100 }))),
+        avatar: t.Optional(t.Nullable(t.String({ maxLength: 2048 }))),
+        avatarFile: t.Optional(t.File({ maxSize: "10m" })),
         bannerImage: t.Optional(t.Nullable(t.String({ maxLength: 2048 }))),
+        bannerImageFile: t.Optional(t.File({ maxSize: "10m" })),
         pinnedPostId: t.Optional(t.Nullable(t.String())),
       }),
       response: {
         200: t.Object({ profile: UpdatedProfileSchema }),
+        ...UploadErrorResponses,
         ...AuthNotFoundResponses,
       },
     }

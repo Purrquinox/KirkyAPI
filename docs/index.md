@@ -111,6 +111,24 @@ A valid hashtag is a `#` followed by one or more letters, digits, or underscores
 
 Mentioning `@username` in post or comment content automatically triggers a `MENTION` notification for that user. Notifications are fire-and-forget — if the username does not exist, the notification is silently skipped.
 
+### File Uploads
+
+Endpoints that accept images support **direct file upload** alongside their normal fields. Send these requests as `multipart/form-data` instead of `application/json`. All other string fields work identically as form fields.
+
+| Endpoint | File field(s) | Effect |
+|---|---|---|
+| `PATCH /users/me` | `avatarFile` | Uploads and sets `avatar` |
+| `PATCH /users/me` | `bannerImageFile` | Uploads and sets `bannerImage` |
+| `POST /posts` | `imageFile` | Uploads and sets `imageUrl` |
+| `PATCH /posts/:id` | `imageFile` | Uploads and sets `imageUrl` |
+| `POST /posts/:id/comments` | `imageFile` | Uploads and sets `imageUrl` |
+
+If you'd rather upload separately (e.g. to preview before submitting), use `POST /images/upload` to get a CDN URL, then pass it as the corresponding string field on any subsequent call.
+
+All images are stored on the Kirky CDN via BytePurr. URLs take the form `https://bytepurr.purrquinox.com/<key>`. Maximum file size is **10 MB**. If the upload fails, the endpoint returns `502` and the record is not written.
+
+If both a file field and a URL string field are provided (e.g. `imageFile` and `imageUrl`), the file takes precedence.
+
 ### Block Behavior
 
 When user A blocks user B:
@@ -170,6 +188,7 @@ A `503` means the KirkyAuth service was unreachable when validating your token. 
 | `404` | Not Found                                                  |
 | `409` | Conflict — resource already exists                         |
 | `429` | Too Many Requests — rate limit exceeded                    |
+| `502` | Bad Gateway — CDN rejected the image upload                |
 | `503` | Service Unavailable — auth service unreachable             |
 
 ---
@@ -186,6 +205,7 @@ A `503` means the KirkyAuth service was unreachable when validating your token. 
 | [Comments](comments.md)             | Threaded comments and likes                   |
 | [Notifications](notifications.md)   | Activity notifications and read state         |
 | [Search](search.md)                 | Full-text search for users, posts, hashtags   |
+| [Images](images.md)                 | Upload images to the Kirky CDN (BytePurr)     |
 
 ---
 

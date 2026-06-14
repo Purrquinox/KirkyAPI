@@ -146,9 +146,10 @@ Adds a comment to a published post. To reply to an existing comment, pass `paren
 
 | Field      | Type   | Required | Constraints      | Description                               |
 |------------|--------|----------|------------------|-------------------------------------------|
-| `content`  | string | Yes      | 1–5000 chars     | Comment text                              |
-| `imageUrl` | string | No       | Max 2048 chars   | Image URL to attach                       |
-| `parentId` | string | No       | Top-level comment on this post | ID of comment to reply to  |
+| `content`   | string | Yes      | 1–5000 chars                   | Comment text                              |
+| `imageUrl`  | string | No       | Max 2048 chars                 | Image URL to attach                       |
+| `imageFile` | file   | No       | Max 10 MB                      | Upload image directly; takes precedence over `imageUrl` |
+| `parentId`  | string | No       | Top-level comment on this post | ID of comment to reply to                 |
 
 ### Response `201`
 
@@ -182,13 +183,22 @@ Adds a comment to a published post. To reply to an existing comment, pass `paren
 
 ### Examples
 
-**Top-level comment:**
+**Top-level comment (JSON):**
 
 ```bash
 curl -X POST "https://api.kirky.app/posts/clx1a2b3c/comments" \
   -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json" \
   -d '{"content": "Great work on this!"}'
+```
+
+**Comment with an image attached (multipart):**
+
+```bash
+curl -X POST "https://api.kirky.app/posts/clx1a2b3c/comments" \
+  -H "Authorization: Bearer $TOKEN" \
+  -F "content=Here's a screenshot of what I mean" \
+  -F "imageFile=@screenshot.png"
 ```
 
 **Reply to a comment:**
@@ -206,6 +216,7 @@ curl -X POST "https://api.kirky.app/posts/clx1a2b3c/comments" \
 |--------|---------------------------------------------------------------|
 | `401`  | Missing or invalid token                                      |
 | `404`  | Post not found, or `parentId` not found on this post          |
+| `502`  | CDN rejected the image upload                                 |
 | `503`  | Auth service unreachable                                      |
 
 ---
@@ -214,7 +225,7 @@ curl -X POST "https://api.kirky.app/posts/clx1a2b3c/comments" \
 
 **`PATCH /comments/:id`**
 
-Updates the content of a comment you own. Only `content` can be changed — `imageUrl` cannot be edited after creation.
+Updates the content of a comment you own. Only `content` can be changed — `imageUrl` is set at creation time via `imageFile` or `imageUrl` and cannot be edited afterward.
 
 ### Path Parameters
 

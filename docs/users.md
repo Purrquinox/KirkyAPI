@@ -116,10 +116,15 @@ Updates the authenticated user's profile. All fields are optional — only the f
 | `bio`          | string \| null | Max 500 chars                       | Profile bio                          |
 | `website`      | string \| null | Max 255 chars                       | Personal or project URL              |
 | `location`     | string \| null | Max 100 chars                       | Location string                      |
-| `bannerImage`  | string \| null | Max 2048 chars                      | Banner image URL                     |
+| `avatar`           | string \| null | Max 2048 chars                      | Avatar image URL                     |
+| `avatarFile`       | file           | Max 10 MB                           | Upload avatar directly; sets `avatar` |
+| `bannerImage`      | string \| null | Max 2048 chars                      | Banner image URL                     |
+| `bannerImageFile`  | file           | Max 10 MB                           | Upload banner directly; sets `bannerImage` |
 | `pinnedPostId` | string \| null | Must be your own published post ID  | Post to pin to the profile           |
 
 Pass `null` explicitly to clear a nullable field (e.g. `"bio": null` removes the bio).
+
+> **Images:** Pass a file via `avatarFile` or `bannerImageFile` to upload and set in one request, or supply a pre-uploaded URL via `avatar` / `bannerImage`. When both are supplied, the file takes precedence. Send as `multipart/form-data` when including a file field. See [Images](images.md).
 
 ### Response `200`
 
@@ -136,8 +141,8 @@ Pass `null` explicitly to clear a nullable field (e.g. `"bio": null` removes the
     "bio": "Updated bio.",
     "website": "https://janedoe.dev",
     "location": "New York, NY",
-    "bannerImage": null,
-    "avatar": null,
+    "bannerImage": "https://bytepurr.purrquinox.com/kirky/banner123/cover.jpg",
+    "avatar": "https://bytepurr.purrquinox.com/kirky/avatar456/photo.jpg",
     "verified": false,
     "updatedAt": "2026-06-14T12:00:00.000Z",
     "followersCount": 120,
@@ -146,13 +151,41 @@ Pass `null` explicitly to clear a nullable field (e.g. `"bio": null` removes the
 }
 ```
 
-### Example
+### Examples
+
+**Update text fields (JSON):**
 
 ```bash
 curl -X PATCH "https://api.kirky.app/users/me" \
   -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json" \
   -d '{"bio": "Building Kirky.", "location": "San Francisco, CA"}'
+```
+
+**Upload an avatar and update bio in one request (multipart):**
+
+```bash
+curl -X PATCH "https://api.kirky.app/users/me" \
+  -H "Authorization: Bearer $TOKEN" \
+  -F "avatarFile=@photo.jpg" \
+  -F "bio=Building Kirky."
+```
+
+**Upload a banner image:**
+
+```bash
+curl -X PATCH "https://api.kirky.app/users/me" \
+  -H "Authorization: Bearer $TOKEN" \
+  -F "bannerImageFile=@banner.jpg"
+```
+
+**Set a pre-uploaded URL directly:**
+
+```bash
+curl -X PATCH "https://api.kirky.app/users/me" \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"avatar": "https://bytepurr.purrquinox.com/kirky/abc123/photo.jpg"}'
 ```
 
 **Pin a post:**
@@ -179,6 +212,7 @@ curl -X PATCH "https://api.kirky.app/users/me" \
 |--------|-----------------------------------------------------------------------|
 | `401`  | Missing or invalid token                                              |
 | `404`  | Profile not found, or `pinnedPostId` does not exist or belong to you  |
+| `502`  | CDN rejected the avatar or banner image upload                        |
 | `503`  | Auth service unreachable                                              |
 
 ---

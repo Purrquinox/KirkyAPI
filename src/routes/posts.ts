@@ -14,6 +14,9 @@ import {
   AuthNotFoundResponses,
   AuthForbiddenNotFoundResponses,
 } from "../lib/schemas";
+import { uploadToBytePurr } from "../lib/upload";
+
+const UploadErrorResponses = { 502: ErrorSchema } as const;
 
 const security = [{ bearerAuth: [] }];
 
@@ -131,6 +134,12 @@ export const postsRouter = new Elysia({ prefix: "/posts" })
   .post(
     "/",
     async ({ userId, body, set }) => {
+      let resolvedImageUrl: string | null = body.imageUrl ?? null;
+      if (body.imageFile) {
+        try { resolvedImageUrl = await uploadToBytePurr(body.imageFile, userId, "PostImage"); }
+        catch { set.status = 502; return { error: "Image upload failed" }; }
+      }
+
       if (body.quoteOfId) {
         const quoted = await prisma.post.findUnique({
           where: { id: body.quoteOfId, published: true },
@@ -149,7 +158,7 @@ export const postsRouter = new Elysia({ prefix: "/posts" })
           authorId: userId,
           content: body.content,
           title: body.title ?? null,
-          imageUrl: body.imageUrl ?? null,
+          imageUrl: resolvedImageUrl,
           published,
           publishedAt: published ? new Date() : null,
           quoteOfId: body.quoteOfId ?? null,
@@ -175,11 +184,13 @@ export const postsRouter = new Elysia({ prefix: "/posts" })
         content: t.String({ minLength: 1 }),
         title: t.Optional(t.String({ maxLength: 300 })),
         imageUrl: t.Optional(t.String({ maxLength: 2048 })),
+        imageFile: t.Optional(t.File({ maxSize: "10m" })),
         published: t.Optional(t.Boolean()),
         quoteOfId: t.Optional(t.String()),
       }),
       response: {
         201: t.Object({ post: PostWithPublishedSchema }),
+        ...UploadErrorResponses,
         ...AuthNotFoundResponses,
       },
     }
@@ -191,6 +202,12 @@ export const postsRouter = new Elysia({ prefix: "/posts" })
       if (!existing) { set.status = 404; return { error: "Post not found" }; }
       if (existing.authorId !== userId) { set.status = 403; return { error: "Forbidden" }; }
 
+      let resolvedImageUrl = body.imageUrl;
+      if (body.imageFile) {
+        try { resolvedImageUrl = await uploadToBytePurr(body.imageFile, userId, "PostImage"); }
+        catch { set.status = 502; return { error: "Image upload failed" }; }
+      }
+
       const nowPublishing = body.published === true && !existing.published;
       const newContent = body.content ?? existing.content;
 
@@ -199,7 +216,7 @@ export const postsRouter = new Elysia({ prefix: "/posts" })
         data: {
           ...(body.content !== undefined && { content: body.content }),
           ...(body.title !== undefined && { title: body.title }),
-          ...(body.imageUrl !== undefined && { imageUrl: body.imageUrl }),
+          ...(resolvedImageUrl !== undefined && { imageUrl: resolvedImageUrl }),
           ...(body.published !== undefined && {
             published: body.published,
             publishedAt: nowPublishing ? new Date() : existing.publishedAt,
@@ -221,10 +238,12 @@ export const postsRouter = new Elysia({ prefix: "/posts" })
         content: t.Optional(t.String({ minLength: 1 })),
         title: t.Optional(t.Nullable(t.String({ maxLength: 300 }))),
         imageUrl: t.Optional(t.Nullable(t.String({ maxLength: 2048 }))),
+        imageFile: t.Optional(t.File({ maxSize: "10m" })),
         published: t.Optional(t.Boolean()),
       }),
       response: {
         200: t.Object({ post: PostWithPublishedSchema }),
+        ...UploadErrorResponses,
         ...AuthForbiddenNotFoundResponses,
       },
     }

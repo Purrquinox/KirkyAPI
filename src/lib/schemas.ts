@@ -184,6 +184,8 @@ export const HashtagSchema = t.Object({
   postsCount: t.Number(),
 });
 
+export const ImageUploadResponseSchema = t.Object({ url: t.String() });
+
 // Common response sets
 export const AuthResponses = {
   401: ErrorSchema,

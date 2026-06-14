@@ -234,6 +234,7 @@ To quote an existing post, set `quoteOfId` to the ID of a published post. This s
 | `content`   | string  | Yes      | Min 1 char               | Post body text                       |
 | `title`     | string  | No       | Max 300 chars            | Optional short title                 |
 | `imageUrl`  | string  | No       | Max 2048 chars           | Image URL to attach                  |
+| `imageFile` | file    | No       | Max 10 MB                | Upload image directly; takes precedence over `imageUrl` |
 | `published` | boolean | No       | Default `true`           | Set `false` to save as draft         |
 | `quoteOfId` | string  | No       | Must be a published post | ID of post to quote                  |
 
@@ -269,13 +270,22 @@ To quote an existing post, set `quoteOfId` to the ID of a published post. This s
 
 ### Examples
 
-**Publish immediately:**
+**Publish immediately (JSON):**
 
 ```bash
 curl -X POST "https://api.kirky.app/posts" \
   -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json" \
   -d '{"content": "Hello, Kirky! #firstpost"}'
+```
+
+**Publish with an image attached (multipart):**
+
+```bash
+curl -X POST "https://api.kirky.app/posts" \
+  -H "Authorization: Bearer $TOKEN" \
+  -F "content=Check out this photo! #buildinpublic" \
+  -F "imageFile=@screenshot.png"
 ```
 
 **Save as draft:**
@@ -302,6 +312,7 @@ curl -X POST "https://api.kirky.app/posts" \
 |--------|-----------------------------------------|
 | `401`  | Missing or invalid token                |
 | `404`  | `quoteOfId` not found or not published  |
+| `502`  | CDN rejected the image upload           |
 | `503`  | Auth service unreachable                |
 
 ---
@@ -322,10 +333,11 @@ Updates a post you own. All fields are optional — only supplied fields are cha
 
 | Field       | Type           | Constraints   | Description                                    |
 |-------------|----------------|---------------|------------------------------------------------|
-| `content`   | string         | Min 1 char    | Updated body text                              |
-| `title`     | string \| null | Max 300 chars | Updated title; pass `null` to clear            |
-| `imageUrl`  | string \| null | Max 2048 chars| Updated image; pass `null` to clear            |
-| `published` | boolean        | —             | Set `true` to publish a draft                  |
+| `content`   | string         | Min 1 char     | Updated body text                              |
+| `title`     | string \| null | Max 300 chars  | Updated title; pass `null` to clear            |
+| `imageUrl`  | string \| null | Max 2048 chars | Updated image URL; pass `null` to clear        |
+| `imageFile` | file           | Max 10 MB      | Upload image directly; takes precedence over `imageUrl` |
+| `published` | boolean        | —              | Set `true` to publish a draft                  |
 
 ### Response `200`
 
@@ -335,13 +347,30 @@ Updates a post you own. All fields are optional — only supplied fields are cha
 
 ### Examples
 
-**Edit content:**
+**Edit content (JSON):**
 
 ```bash
 curl -X PATCH "https://api.kirky.app/posts/clxdraftid" \
   -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json" \
   -d '{"content": "Updated content here."}'
+```
+
+**Attach an image (multipart):**
+
+```bash
+curl -X PATCH "https://api.kirky.app/posts/clxdraftid" \
+  -H "Authorization: Bearer $TOKEN" \
+  -F "imageFile=@photo.jpg"
+```
+
+**Clear the attached image:**
+
+```bash
+curl -X PATCH "https://api.kirky.app/posts/clxdraftid" \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"imageUrl": null}'
 ```
 
 **Publish a draft:**
@@ -360,6 +389,7 @@ curl -X PATCH "https://api.kirky.app/posts/clxdraftid" \
 | `401`  | Missing or invalid token         |
 | `403`  | You do not own this post         |
 | `404`  | Post not found                   |
+| `502`  | CDN rejected the image upload    |
 | `503`  | Auth service unreachable         |
 
 ---

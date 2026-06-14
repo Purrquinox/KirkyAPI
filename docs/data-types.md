@@ -26,7 +26,7 @@ A published post. The `published` field is only present on endpoints that return
 | `id`            | string            | CUID identifier                                      |
 | `title`         | string \| null    | Optional short title (max 300 chars)                 |
 | `content`       | string            | Post body text                                       |
-| `imageUrl`      | string \| null    | Attached image URL (max 2048 chars)                  |
+| `imageUrl`      | string \| null    | Attached image URL — Kirky CDN (`https://bytepurr.purrquinox.com/<key>`) or any valid URL; max 2048 chars |
 | `published`     | boolean           | Present only on draft-aware endpoints                |
 | `publishedAt`   | ISO 8601 \| null  | When the post was published; null for drafts         |
 | `createdAt`     | ISO 8601          | When the record was created                          |
@@ -48,7 +48,7 @@ A published post. The `published` field is only present on endpoints that return
   "id": "clx1a2b3c",
   "title": null,
   "content": "Shipping a new feature today. #buildinpublic #indiedev",
-  "imageUrl": null,
+  "imageUrl": "https://bytepurr.purrquinox.com/kirky/abc123/screenshot.png",
   "publishedAt": "2026-06-14T10:00:00.000Z",
   "createdAt": "2026-06-14T09:55:00.000Z",
   "updatedAt": "2026-06-14T09:55:00.000Z",
@@ -57,7 +57,7 @@ A published post. The `published` field is only present on endpoints that return
       "username": "elias",
       "firstName": "Elias",
       "lastName": "Mercer",
-      "avatar": "https://cdn.kirky.app/avatars/elias.jpg",
+      "avatar": "https://bytepurr.purrquinox.com/kirky/avatar99/elias.jpg",
       "verified": true
     }
   },
@@ -95,7 +95,7 @@ When `type` is `"repost"`, the feed item represents the **original post** with `
 |--------------|-------------------|----------------------------------------------------|
 | `id`         | string            | CUID identifier                                    |
 | `content`    | string            | Comment body (max 5000 chars)                      |
-| `imageUrl`   | string \| null    | Attached image URL                                 |
+| `imageUrl`   | string \| null    | Attached image URL — Kirky CDN or any valid URL; set at creation time, not editable afterward |
 | `parentId`   | string \| null    | ID of parent comment; null for top-level comments  |
 | `createdAt`  | ISO 8601          |                                                    |
 | `updatedAt`  | ISO 8601          |                                                    |
@@ -162,7 +162,7 @@ Abbreviated profile attached to posts and comments. `profile` is null only if th
 | `profile.username`    | string         | Handle                              |
 | `profile.firstName`   | string \| null | Display first name                  |
 | `profile.lastName`    | string \| null | Display last name                   |
-| `profile.avatar`      | string \| null | Avatar image URL                    |
+| `profile.avatar`      | string \| null | Avatar image URL (`https://bytepurr.purrquinox.com/<key>`) |
 | `profile.verified`    | boolean        | Blue-check verification status      |
 
 ---
@@ -194,11 +194,11 @@ Full public-facing profile, including social graph context relative to the authe
 | `username`       | string                     | Unique handle                                        |
 | `firstName`      | string \| null             |                                                      |
 | `lastName`       | string \| null             |                                                      |
-| `avatar`         | string \| null             | Avatar image URL                                     |
+| `avatar`         | string \| null             | Avatar image URL — Kirky CDN or any valid URL        |
 | `bio`            | string \| null             | Profile bio (max 500 chars)                          |
 | `website`        | string \| null             |                                                      |
 | `location`       | string \| null             |                                                      |
-| `bannerImage`    | string \| null             | Profile banner image URL                             |
+| `bannerImage`    | string \| null             | Profile banner image URL — Kirky CDN or any valid URL |
 | `verified`       | boolean                    | Blue-check verification status                       |
 | `createdAt`      | ISO 8601                   | Account creation date                                |
 | `followersCount` | number                     |                                                      |

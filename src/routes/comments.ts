@@ -12,6 +12,9 @@ import {
   AuthNotFoundResponses,
   AuthForbiddenNotFoundResponses,
 } from "../lib/schemas";
+import { uploadToBytePurr } from "../lib/upload";
+
+const UploadErrorResponses = { 502: ErrorSchema } as const;
 
 const security = [{ bearerAuth: [] }];
 
@@ -81,13 +84,19 @@ export const commentsRouter = new Elysia()
         if (!parent) { set.status = 404; return { error: "Parent comment not found" }; }
       }
 
+      let resolvedImageUrl: string | null = body.imageUrl ?? null;
+      if (body.imageFile) {
+        try { resolvedImageUrl = await uploadToBytePurr(body.imageFile, userId, "PostImage"); }
+        catch { set.status = 502; return { error: "Image upload failed" }; }
+      }
+
       set.status = 201;
       const comment = await prisma.comment.create({
         data: {
           postId: params.id,
           authorId: userId,
           content: body.content,
-          imageUrl: body.imageUrl ?? null,
+          imageUrl: resolvedImageUrl,
           parentId: body.parentId ?? null,
         },
         select: buildCommentSelect(userId),
@@ -105,10 +114,12 @@ export const commentsRouter = new Elysia()
       body: t.Object({
         content: t.String({ minLength: 1, maxLength: 5000 }),
         imageUrl: t.Optional(t.String({ maxLength: 2048 })),
+        imageFile: t.Optional(t.File({ maxSize: "10m" })),
         parentId: t.Optional(t.String()),
       }),
       response: {
         201: t.Object({ comment: CommentSchema }),
+        ...UploadErrorResponses,
         ...AuthNotFoundResponses,
       },
     }
