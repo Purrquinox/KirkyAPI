@@ -7,8 +7,6 @@ const log = (msg: string) => console.log(`[${new Date().toISOString()}] [auth] $
 
 type IntrospectResult = { active: boolean; sub?: string };
 
-// Cache introspect results per Request object so the 3 routers that each
-// use authPlugin only hit the network once per actual HTTP request.
 const authCache = new WeakMap<Request, IntrospectResult | null>();
 
 export const authPlugin = new Elysia({ name: "auth" }).derive(
@@ -30,23 +28,46 @@ export const authPlugin = new Elysia({ name: "auth" }).derive(
       return { userId: cached.sub };
     }
 
-    log(`Introspecting token: ${tokenPreview}`);
+    log(`Verifying token: ${tokenPreview}`);
 
     let data: IntrospectResult | null = null;
 
     try {
-      const res = await fetch(`${AUTH_API_URL}/api/user/profile`, {
+      // Try OAuth introspect first (developer tokens have client_id)
+      const introspectRes = await fetch(`${AUTH_API_URL}/api/oauth/introspect`, {
         method: "POST",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ token }),
       });
 
-      if (!res.ok) {
-        log(`Introspect request failed — HTTP ${res.status}`);
+      if (!introspectRes.ok) {
+        log(`Introspect request failed — HTTP ${introspectRes.status}`);
         return status(503, { error: "Auth service unavailable" });
       }
 
-      data = await res.json();
-      log(`Introspect response: active=${data?.active} sub=${data?.sub ?? "none"}`);
+      const introspectData = await introspectRes.json();
+      log(`OAuth introspect: active=${introspectData?.active} sub=${introspectData?.sub ?? "none"}`);
+
+      if (introspectData?.active && introspectData.sub) {
+        data = { active: true, sub: introspectData.sub };
+      } else {
+        // Fall back to internal JWT — call the profile endpoint with the Bearer token
+        const profileRes = await fetch(`${AUTH_API_URL}/api/user/profile`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
+        if (profileRes.status === 401 || profileRes.status === 403) {
+          data = { active: false };
+        } else if (!profileRes.ok) {
+          log(`Profile request failed — HTTP ${profileRes.status}`);
+          return status(503, { error: "Auth service unavailable" });
+        } else {
+          const profileData = await profileRes.json();
+          const sub = profileData?.user?.id;
+          log(`Internal JWT profile: sub=${sub ?? "none"}`);
+          data = sub ? { active: true, sub } : { active: false };
+        }
+      }
     } catch (err) {
       log(`Auth service unreachable: ${err instanceof Error ? err.message : String(err)}`);
       return status(503, { error: "Auth service unavailable" });
