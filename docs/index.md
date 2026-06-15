@@ -199,13 +199,14 @@ A `503` means the KirkyAuth service was unreachable when validating your token. 
 |-------------------------------------|-----------------------------------------------|
 | [Authentication](authentication.md) | Token lifecycle, OAuth flows, and error codes |
 | [System](system.md)                 | Health check and root endpoints               |
-| [Feed](feed.md)                     | Home timeline with posts and reposts          |
+| [Feed](feed.md)                     | Chronological following feed and algorithmic For You feed |
 | [Users](users.md)                   | Profiles, follow, block, and follower lists   |
 | [Posts](posts.md)                   | Create, read, update, delete, like, and share |
 | [Comments](comments.md)             | Threaded comments and likes                   |
-| [Notifications](notifications.md)   | Activity notifications and read state         |
-| [Search](search.md)                 | Full-text search for users, posts, hashtags   |
-| [Images](images.md)                 | Upload images to the Kirky CDN (BytePurr)     |
+| [Notifications](notifications.md)   | Activity notifications and read state                         |
+| [Search](search.md)                 | Unified search plus targeted search for users, posts, hashtags |
+| [Explore](explore.md)               | Trending hashtags, posts, and curated events                  |
+| [Images](images.md)                 | Upload images to the Kirky CDN (BytePurr)                     |
 
 ---
 

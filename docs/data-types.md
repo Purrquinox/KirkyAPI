@@ -386,3 +386,21 @@ Minimal profile shape used in follower/following lists, blocked user lists, and 
 |--------------|--------|------------------------------------------|
 | `tag`        | string | Hashtag string without the `#` prefix    |
 | `postsCount` | number | Number of published posts with this tag  |
+
+---
+
+## Event
+
+Curated events returned by the [Explore](explore.md) endpoints.
+
+| Field         | Type                        | Description                                          |
+|---------------|-----------------------------|------------------------------------------------------|
+| `id`          | string                      | CUID identifier                                      |
+| `title`       | string                      | Event title                                          |
+| `description` | string \| null              | Optional description                                 |
+| `imageUrl`    | string \| null              | Cover image URL — Kirky CDN or any valid URL         |
+| `featured`    | boolean                     | Whether the event is currently featured              |
+| `hashtag`     | `{ tag: string }` \| null   | Linked hashtag; null if no hashtag was associated    |
+| `startsAt`    | ISO 8601                    | When the event begins                                |
+| `endsAt`      | ISO 8601 \| null            | When the event ends; null for open-ended events      |
+| `createdAt`   | ISO 8601                    | When the record was created                          |

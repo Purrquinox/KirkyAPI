@@ -9,6 +9,7 @@ import { commentsRouter } from "./routes/comments";
 import { feedRouter } from "./routes/feed";
 import { notificationsRouter } from "./routes/notifications";
 import { searchRouter } from "./routes/search";
+import { exploreRouter } from "./routes/explore";
 import { imagesRouter } from "./routes/images";
 import { MessageSchema } from "./lib/schemas";
 
@@ -31,6 +32,7 @@ const app = new Elysia()
           { name: "Posts", description: "Create, read, update, and delete posts" },
           { name: "Comments", description: "Comments and threaded replies on posts" },
           { name: "Notifications", description: "Activity notifications" },
+          { name: "Explore", description: "Trending hashtags, events, and posts for the Explore page" },
           { name: "Search", description: "Search users, posts, and hashtags" },
           { name: "Images", description: "Upload images to the Kirky CDN" },
           { name: "System", description: "Health and status endpoints" },
@@ -57,6 +59,7 @@ const app = new Elysia()
   .use(commentsRouter)
   .use(notificationsRouter)
   .use(searchRouter)
+  .use(exploreRouter)
   .use(imagesRouter)
   .listen(process.env.PORT ? Number(process.env.PORT) : 3000);
 

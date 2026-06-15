@@ -9,6 +9,8 @@ import {
   AuthResponses,
 } from "../lib/schemas";
 
+const ALL_TYPES = ["users", "posts", "hashtags"] as const;
+
 const security = [{ bearerAuth: [] }];
 
 export const searchRouter = new Elysia({ prefix: "/search" })
@@ -148,6 +150,115 @@ export const searchRouter = new Elysia({ prefix: "/search" })
       }),
       response: {
         200: t.Object({ hashtags: t.Array(HashtagSchema), total: t.Number() }),
+        ...AuthResponses,
+      },
+    }
+  )
+  // ── Unified search ───────────────────────────────────────────────────────────
+  .get(
+    "/all",
+    async ({ userId, query }) => {
+      let q = query.q.trim();
+      const perLimit = Math.min(query.limit ?? 5, 20);
+
+      // Smart prefix detection — #tag biases toward hashtags, @name toward users
+      let defaultTypes: string[] = [...ALL_TYPES];
+      if (q.startsWith("#")) {
+        q = q.slice(1).toLowerCase();
+        defaultTypes = ["hashtags"];
+      } else if (q.startsWith("@")) {
+        q = q.slice(1);
+        defaultTypes = ["users"];
+      }
+
+      const types = new Set<string>(
+        query.types
+          ? query.types.split(",").map(s => s.trim().toLowerCase())
+          : defaultTypes
+      );
+
+      const [rawUsers, rawPosts, rawHashtags] = await Promise.all([
+        types.has("users")
+          ? prisma.profile.findMany({
+              where: {
+                OR: [
+                  { username: { contains: q, mode: "insensitive" } },
+                  { firstName: { contains: q, mode: "insensitive" } },
+                  { lastName: { contains: q, mode: "insensitive" } },
+                ],
+              },
+              select: {
+                ...publicProfileSelect,
+                user: { select: { _count: { select: { followedBy: true, following: true } } } },
+              },
+              orderBy: { username: "asc" },
+              take: perLimit,
+            })
+          : Promise.resolve([]),
+
+        types.has("posts")
+          ? prisma.post.findMany({
+              where: {
+                published: true,
+                OR: [
+                  { content: { contains: q, mode: "insensitive" } },
+                  { title: { contains: q, mode: "insensitive" } },
+                ],
+              },
+              select: buildPostSelect(userId),
+              orderBy: { publishedAt: "desc" },
+              take: perLimit,
+            })
+          : Promise.resolve([]),
+
+        types.has("hashtags")
+          ? prisma.hashtag.findMany({
+              where: { tag: { startsWith: q.toLowerCase().replace(/^#/, "") } },
+              select: { tag: true, _count: { select: { posts: true } } },
+              orderBy: { posts: { _count: "desc" } },
+              take: perLimit,
+            })
+          : Promise.resolve([]),
+      ]);
+
+      return {
+        query: q,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        users: (rawUsers as any[]).map(p => ({
+          ...p,
+          user: undefined,
+          followersCount: p.user._count.followedBy,
+          followingCount: p.user._count.following,
+          isFollowing: false,
+          isBlocked: false,
+          pinnedPost: null,
+        })),
+        posts: (rawPosts as any[]).map(transformPost),
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        hashtags: (rawHashtags as any[]).map(h => ({ tag: h.tag, postsCount: h._count.posts })),
+      };
+    },
+    {
+      detail: {
+        tags: ["Search"],
+        summary: "Unified search — users, posts, and hashtags in one request",
+        description:
+          "Prefix `q` with `#` to bias toward hashtags or `@` to bias toward users. " +
+          "Use the `types` param to restrict results (e.g. `types=users,posts`).",
+        security,
+      },
+      query: t.Object({
+        q: t.String({ minLength: 1, maxLength: 100 }),
+        types: t.Optional(t.String({ description: "Comma-separated subset of: users, posts, hashtags" })),
+        limit: t.Optional(t.Number({ minimum: 1, maximum: 20, description: "Max results per type" })),
+      }),
+      response: {
+        200: t.Object({
+          query: t.String(),
+          users: t.Array(PublicProfileSchema),
+          posts: t.Array(PostSchema),
+          hashtags: t.Array(HashtagSchema),
+        }),
         ...AuthResponses,
       },
     }

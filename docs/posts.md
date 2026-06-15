@@ -93,6 +93,13 @@ curl "https://api.kirky.app/posts?limit=20" \
   -H "Authorization: Bearer $TOKEN"
 ```
 
+### Errors
+
+| Status | Description              |
+|--------|--------------------------|
+| `401`  | Missing or invalid token |
+| `503`  | Auth service unreachable |
+
 ---
 
 ## List Own Posts
@@ -122,6 +129,13 @@ curl "https://api.kirky.app/posts/mine" \
   -H "Authorization: Bearer $TOKEN"
 ```
 
+### Errors
+
+| Status | Description              |
+|--------|--------------------------|
+| `401`  | Missing or invalid token |
+| `503`  | Auth service unreachable |
+
 ---
 
 ## List Bookmarked Posts
@@ -150,6 +164,13 @@ Returns posts bookmarked by the authenticated user, in reverse bookmark order (m
 curl "https://api.kirky.app/posts/bookmarks" \
   -H "Authorization: Bearer $TOKEN"
 ```
+
+### Errors
+
+| Status | Description              |
+|--------|--------------------------|
+| `401`  | Missing or invalid token |
+| `503`  | Auth service unreachable |
 
 ---
 

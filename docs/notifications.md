@@ -2,18 +2,24 @@
 
 The Notifications API provides access to the authenticated user's activity stream. Notifications are generated automatically when other users interact with your content — likes, comments, follows, reposts, quotes, and mentions.
 
+Real-time delivery is handled via **Server-Sent Events** (for web) and **push notifications** (for browsers and iOS).
+
 **Base path:** `/notifications`
 
 ---
 
 ## Endpoints
 
-| Method  | Path                          | Description                            |
-|---------|-------------------------------|----------------------------------------|
-| `GET`   | `/notifications`              | List notifications                     |
-| `GET`   | `/notifications/unread-count` | Get unread notification count          |
-| `PATCH` | `/notifications/read-all`     | Mark all notifications as read         |
-| `PATCH` | `/notifications/:id/read`     | Mark a single notification as read     |
+| Method   | Path                              | Auth | Description                                    |
+|----------|-----------------------------------|------|------------------------------------------------|
+| `GET`    | `/notifications`                  | ✓    | List notifications                             |
+| `GET`    | `/notifications/unread-count`     | ✓    | Get unread notification count                  |
+| `PATCH`  | `/notifications/read-all`         | ✓    | Mark all notifications as read                 |
+| `PATCH`  | `/notifications/:id/read`         | ✓    | Mark a single notification as read             |
+| `GET`    | `/notifications/stream`           | ✓    | SSE stream for real-time delivery              |
+| `GET`    | `/notifications/vapid-public-key` | —    | VAPID public key for Web Push subscriptions    |
+| `POST`   | `/notifications/push/register`    | ✓    | Register a push device (browser or iOS)        |
+| `DELETE` | `/notifications/push/unregister`  | ✓    | Unregister a push device                       |
 
 ---
 
@@ -222,6 +228,234 @@ curl -X PATCH "https://api.kirky.app/notifications/clxnotif1/read" \
 | `403`  | Notification does not belong to you        |
 | `404`  | Notification not found                     |
 | `503`  | Auth service unreachable                   |
+
+---
+
+---
+
+## Real-Time Notifications (SSE)
+
+**`GET /notifications/stream`**
+
+Opens a persistent Server-Sent Events connection. The server pushes a `notification` event each time a new notification is created for the authenticated user. The connection is kept alive with a `: ping` comment every 25 seconds.
+
+> This endpoint is intended for **web clients**. iOS apps receive notifications via APNs push — see [Push Notifications](#push-notifications) below.
+
+### Event format
+
+Each event has the `notification` type and a JSON `data` payload:
+
+```
+event: notification
+data: {"id":"clxnotif1","type":"LIKE_POST","createdAt":"2026-06-14T11:00:00.000Z","actor":"janedoe"}
+
+: ping
+```
+
+| Field       | Type   | Description                            |
+|-------------|--------|----------------------------------------|
+| `id`        | string | Notification CUID — use to fetch full details |
+| `type`      | string | One of the [notification types](#notification-types) |
+| `createdAt` | string | ISO 8601 timestamp                     |
+| `actor`     | string | Username of the user who triggered it  |
+
+### Browser example
+
+```js
+const es = new EventSource("/notifications/stream", {
+  headers: { Authorization: `Bearer ${token}` },
+});
+
+es.addEventListener("notification", (e) => {
+  const notif = JSON.parse(e.data);
+  showToast(`@${notif.actor} — ${notif.type}`);
+  refreshBadgeCount();
+});
+
+es.onerror = () => {
+  // Reconnect after a short delay — EventSource retries automatically,
+  // but you can control the backoff by closing and reopening.
+};
+```
+
+### Errors
+
+| Status | Description              |
+|--------|--------------------------|
+| `401`  | Missing or invalid token |
+| `503`  | Auth service unreachable |
+
+---
+
+## Push Notifications
+
+Push notifications are delivered out-of-band — they arrive even when the app or tab is closed. Two platforms are supported:
+
+| Platform | Mechanism           | Registration token          |
+|----------|---------------------|-----------------------------|
+| Web      | Web Push (VAPID)    | Push subscription endpoint  |
+| iOS      | APNs (direct)       | APNs device token           |
+
+---
+
+### Get VAPID Public Key
+
+**`GET /notifications/vapid-public-key`** — No auth required.
+
+Returns the VAPID public key needed to create a Web Push subscription in the browser.
+
+#### Response `200`
+
+| Field       | Type   | Description                       |
+|-------------|--------|-----------------------------------|
+| `publicKey` | string | Base64url-encoded VAPID public key |
+
+```json
+{ "publicKey": "BNbZOaim2vExkn..." }
+```
+
+#### Browser example
+
+```js
+const { publicKey } = await fetch("/notifications/vapid-public-key").then(r => r.json());
+
+const registration = await navigator.serviceWorker.ready;
+const subscription = await registration.pushManager.subscribe({
+  userVisibleOnly: true,
+  applicationServerKey: publicKey,
+});
+
+// Pass the subscription to the register endpoint below
+await registerPushDevice("WEB", subscription);
+```
+
+---
+
+### Register Push Device
+
+**`POST /notifications/push/register`**
+
+Registers a browser push subscription or an APNs device token for the authenticated user. Safe to call on every app launch — uses upsert so duplicate tokens are not created.
+
+#### Request body
+
+| Field      | Type                | Required           | Description                                     |
+|------------|---------------------|--------------------|-------------------------------------------------|
+| `platform` | `"WEB"` \| `"IOS"` | ✓                  | Platform type                                   |
+| `token`    | string              | ✓                  | Push endpoint URL (WEB) or APNs device token (IOS) |
+| `p256dh`   | string              | WEB only           | P-256 DH public key from the push subscription  |
+| `auth`     | string              | WEB only           | Auth secret from the push subscription          |
+
+#### Web example
+
+```js
+async function registerPushDevice(platform, subscription) {
+  const { endpoint, keys } = subscription.toJSON();
+  await fetch("/notifications/push/register", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({
+      platform: "WEB",
+      token: endpoint,
+      p256dh: keys.p256dh,
+      auth: keys.auth,
+    }),
+  });
+}
+```
+
+#### iOS (Swift) example
+
+```swift
+func application(
+  _ application: UIApplication,
+  didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data
+) {
+  let tokenString = deviceToken.map { String(format: "%02x", $0) }.joined()
+
+  Task {
+    try await APIClient.shared.post("/notifications/push/register", body: [
+      "platform": "IOS",
+      "token": tokenString,
+    ])
+  }
+}
+```
+
+#### Response `201`
+
+```json
+{ "message": "Device registered" }
+```
+
+#### Errors
+
+| Status | Description                                    |
+|--------|------------------------------------------------|
+| `400`  | `p256dh` or `auth` missing for WEB platform   |
+| `401`  | Missing or invalid token                       |
+| `503`  | Auth service unreachable                       |
+
+---
+
+### Unregister Push Device
+
+**`DELETE /notifications/push/unregister`**
+
+Removes a push device. Call this on logout, or when the user revokes notification permission.
+
+#### Request body
+
+| Field   | Type   | Required | Description                           |
+|---------|--------|----------|---------------------------------------|
+| `token` | string | ✓        | The token that was used to register   |
+
+#### Example
+
+```js
+await fetch("/notifications/push/unregister", {
+  method: "DELETE",
+  headers: {
+    "Content-Type": "application/json",
+    Authorization: `Bearer ${token}`,
+  },
+  body: JSON.stringify({ token: subscription.endpoint }),
+});
+```
+
+#### Response `200`
+
+```json
+{ "message": "Device unregistered" }
+```
+
+#### Errors
+
+| Status | Description              |
+|--------|--------------------------|
+| `401`  | Missing or invalid token |
+| `503`  | Auth service unreachable |
+
+---
+
+### Push payload format
+
+The notification text is generated server-side. Both platforms receive the same content:
+
+| `type`         | `title`              | `body`                              |
+|----------------|----------------------|-------------------------------------|
+| `FOLLOW`       | New follower         | `@actor followed you`               |
+| `LIKE_POST`    | Post liked           | `@actor liked your post`            |
+| `LIKE_COMMENT` | Comment liked        | `@actor liked your comment`         |
+| `COMMENT`      | New comment          | `@actor commented on your post`     |
+| `REPOST`       | Post reposted        | `@actor reposted your post`         |
+| `QUOTE`        | Post quoted          | `@actor quoted your post`           |
+| `MENTION`      | You were mentioned   | `@actor mentioned you`              |
+
+Expired or unregistered tokens are automatically removed from the database when a delivery fails — you do not need to handle cleanup on the client.
 
 ---
 

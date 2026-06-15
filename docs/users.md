@@ -449,6 +449,13 @@ curl "https://api.kirky.app/users/blocks" \
   -H "Authorization: Bearer $TOKEN"
 ```
 
+### Errors
+
+| Status | Description              |
+|--------|--------------------------|
+| `401`  | Missing or invalid token |
+| `503`  | Auth service unreachable |
+
 ---
 
 ## List Followers

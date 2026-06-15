@@ -188,6 +188,18 @@ export const HashtagSchema = t.Object({
   postsCount: t.Number(),
 });
 
+export const EventSchema = t.Object({
+  id: t.String(),
+  title: t.String(),
+  description: t.Nullable(t.String()),
+  imageUrl: t.Nullable(t.String()),
+  featured: t.Boolean(),
+  hashtag: t.Nullable(t.Object({ tag: t.String() })),
+  startsAt: t.Date(),
+  endsAt: t.Nullable(t.Date()),
+  createdAt: t.Date(),
+});
+
 export const ImageUploadResponseSchema = t.Object({ url: t.String() });
 
 // Common response sets

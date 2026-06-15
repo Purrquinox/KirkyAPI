@@ -17,6 +17,11 @@ enum NotificationType {
   MENTION
 }
 
+enum PushPlatform {
+  WEB
+  IOS
+}
+
 model User {
   id            String    @id @default(cuid())
   email         String?   @unique
@@ -49,6 +54,7 @@ model User {
   blockedBy          Block[]                @relation("Blocked")
   notifications      Notification[]         @relation("NotificationRecipient")
   sentNotifications  Notification[]         @relation("NotificationActor")
+  pushDevices        PushDevice[]
 
   @@index([email])
   @@index([appleId])
@@ -199,12 +205,32 @@ model Block {
 }
 
 model Hashtag {
-  id    String      @id @default(cuid())
-  tag   String      @unique
-  posts PostHashtag[]
+  id     String        @id @default(cuid())
+  tag    String        @unique
+  posts  PostHashtag[]
+  events Event[]
 
   @@index([tag])
   @@map("hashtags")
+}
+
+model Event {
+  id          String    @id @default(cuid())
+  title       String
+  description String?
+  imageUrl    String?
+  featured    Boolean   @default(false)
+  hashtagId   String?
+  hashtag     Hashtag?  @relation(fields: [hashtagId], references: [id], onDelete: SetNull)
+  startsAt    DateTime
+  endsAt      DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([startsAt])
+  @@index([endsAt])
+  @@index([featured])
+  @@map("events")
 }
 
 model PostHashtag {
@@ -336,6 +362,21 @@ model OAuthAuthorizationCode {
   @@index([appId])
   @@index([userId])
   @@map("oauth_authorization_codes")
+}
+
+model PushDevice {
+  id        String       @id @default(cuid())
+  userId    String
+  user      User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  platform  PushPlatform
+  token     String
+  p256dh    String?
+  auth      String?
+  createdAt DateTime     @default(now())
+
+  @@unique([userId, token])
+  @@index([userId])
+  @@map("push_devices")
 }
 
 model OAuthRefreshToken {

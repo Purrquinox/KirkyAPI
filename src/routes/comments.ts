@@ -76,12 +76,14 @@ export const commentsRouter = new Elysia()
       });
       if (!post) { set.status = 404; return { error: "Post not found" }; }
 
+      let parentAuthorId: string | null = null;
       if (body.parentId) {
         const parent = await prisma.comment.findUnique({
           where: { id: body.parentId, postId: params.id },
-          select: { id: true },
+          select: { id: true, authorId: true },
         });
         if (!parent) { set.status = 404; return { error: "Parent comment not found" }; }
+        parentAuthorId = parent.authorId;
       }
 
       let resolvedImageUrl: string | null = body.imageUrl ?? null;
@@ -104,6 +106,9 @@ export const commentsRouter = new Elysia()
 
       await Promise.all([
         notify({ userId: post.authorId, actorId: userId, type: NotificationType.COMMENT, postId: params.id, commentId: comment.id }),
+        parentAuthorId && parentAuthorId !== post.authorId
+          ? notify({ userId: parentAuthorId, actorId: userId, type: NotificationType.COMMENT, postId: params.id, commentId: comment.id })
+          : Promise.resolve(),
         notifyMentions(body.content, userId, params.id, comment.id),
       ]);
 
